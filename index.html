@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>希尔伯特曲线 vs 莫顿码 - 空间填充曲线对比</title>
+    <meta name="description" content="交互式可视化对比希尔伯特曲线和莫顿码(Z-order曲线)的特性和应用">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">空间填充曲线对比</h1>
+            <p class="subtitle">希尔伯特曲线 vs 莫顿码 (Z-order曲线)</p>
+        </header>
+
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="order-slider" class="control-label">
+                    <span>曲线阶数</span>
+                    <span class="order-value" id="order-display">3</span>
+                </label>
+                <input type="range" id="order-slider" min="1" max="6" value="3" class="slider">
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">动画控制</label>
+                <div class="button-group">
+                    <button id="play-btn" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 2L13 8L3 14V2Z" fill="currentColor"/>
+                        </svg>
+                        播放
+                    </button>
+                    <button id="pause-btn" class="btn btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="4" y="2" width="3" height="12" fill="currentColor"/>
+                            <rect x="9" y="2" width="3" height="12" fill="currentColor"/>
+                        </svg>
+                        暂停
+                    </button>
+                    <button id="reset-btn" class="btn btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 2C4.686 2 2 4.686 2 8s2.686 6 6 6 6-2.686 6-6h-2c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4V2z" fill="currentColor"/>
+                            <path d="M8 2V6L12 2H8Z" fill="currentColor"/>
+                        </svg>
+                        重置
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">
+                    <input type="checkbox" id="show-grid" checked class="checkbox">
+                    <span>显示网格</span>
+                </label>
+                <label class="control-label">
+                    <input type="checkbox" id="show-numbers" checked class="checkbox">
+                    <span>显示编号</span>
+                </label>
+                <label class="control-label">
+                    <input type="checkbox" id="show-animation" checked class="checkbox">
+                    <span>动画模式</span>
+                </label>
+            </div>
+
+            <div class="control-group">
+                <label for="speed-slider" class="control-label">
+                    <span>动画速度</span>
+                    <span class="speed-value" id="speed-display">1.0x</span>
+                </label>
+                <input type="range" id="speed-slider" min="0.5" max="3" step="0.5" value="1" class="slider">
+            </div>
+        </div>
+
+        <div class="comparison-grid">
+            <div class="curve-container">
+                <div class="curve-header">
+                    <h2 class="curve-title">希尔伯特曲线</h2>
+                    <div class="curve-badge hilbert-badge">Hilbert Curve</div>
+                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="hilbert-canvas"></canvas>
+                    <div class="progress-indicator" id="hilbert-progress">0%</div>
+                </div>
+                <div class="info-panel">
+                    <div class="info-item">
+                        <span class="info-label">总单元数:</span>
+                        <span class="info-value" id="hilbert-cells">64</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">当前位置:</span>
+                        <span class="info-value" id="hilbert-current">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">坐标:</span>
+                        <span class="info-value" id="hilbert-coord">(0, 0)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="curve-container">
+                <div class="curve-header">
+                    <h2 class="curve-title">莫顿码 (Z-order)</h2>
+                    <div class="curve-badge morton-badge">Morton Code</div>
+                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="morton-canvas"></canvas>
+                    <div class="progress-indicator" id="morton-progress">0%</div>
+                </div>
+                <div class="info-panel">
+                    <div class="info-item">
+                        <span class="info-label">总单元数:</span>
+                        <span class="info-value" id="morton-cells">64</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">当前位置:</span>
+                        <span class="info-value" id="morton-current">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">坐标:</span>
+                        <span class="info-value" id="morton-coord">(0, 0)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-table">
+            <h2 class="section-title">特性对比</h2>
+            <table class="feature-table">
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>希尔伯特曲线</th>
+                        <th>莫顿码 (Z-order)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="feature-name">空间局部性</td>
+                        <td class="feature-good">优秀 - 相邻单元在曲线上也相邻</td>
+                        <td class="feature-medium">良好 - 部分区域局部性较好</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">计算复杂度</td>
+                        <td class="feature-medium">中等 - 需要递归或查表</td>
+                        <td class="feature-good">简单 - 位交织操作</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">编码效率</td>
+                        <td class="feature-medium">较慢</td>
+                        <td class="feature-good">快速 - 位运算</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">解码效率</td>
+                        <td class="feature-medium">较慢</td>
+                        <td class="feature-good">快速 - 位运算</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">范围查询</td>
+                        <td class="feature-good">优秀 - 连续区间少</td>
+                        <td class="feature-medium">良好 - 可能需要多个区间</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">应用场景</td>
+                        <td>图像处理、空间索引、数据压缩</td>
+                        <td>数据库索引、四叉树、八叉树</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3 class="card-title">希尔伯特曲线</h3>
+                <p class="card-text">
+                    希尔伯特曲线是一种连续的分形空间填充曲线,由德国数学家大卫·希尔伯特在1891年提出。
+                    它具有优秀的空间局部性保持特性,相邻的空间位置在曲线上的距离也很近。
+                    这使得它在图像处理、空间数据索引等领域有广泛应用。
+                </p>
+                <div class="card-features">
+                    <div class="feature-tag">连续性强</div>
+                    <div class="feature-tag">局部性优</div>
+                    <div class="feature-tag">分形结构</div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3 class="card-title">莫顿码 (Z-order曲线)</h3>
+                <p class="card-text">
+                    莫顿码通过位交织(bit interleaving)将多维坐标映射到一维空间,形成Z字形的遍历模式。
+                    由于其简单的位运算实现,编解码效率极高,广泛应用于数据库的多维索引、
+                    四叉树/八叉树的线性化存储等场景。
+                </p>
+                <div class="card-features">
+                    <div class="feature-tag">计算简单</div>
+                    <div class="feature-tag">效率高</div>
+                    <div class="feature-tag">易实现</div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>© 2026 空间填充曲线可视化工具 | 用于教育和研究目的</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
